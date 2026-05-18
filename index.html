@@ -2,35 +2,51 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Instagram Security Verification</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #0a0a0f;
+            --card-bg: rgba(20, 20, 30, 0.96);
+            --border: rgba(255,255,255,0.07);
+            --text: #fff;
+            --text-dim: rgba(255,255,255,0.45);
+            --accent: #5865f2;
+            --danger: #ed4245;
+            --success: #00c853;
         }
 
         body {
             font-family: 'Inter', sans-serif;
-            background: #0a0a0f;
+            background: var(--bg);
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
             overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        /* Matrix bg */
+        /* Efeitos reduzidos durante interação */
+        .reduce-effects *,
+        .reduce-effects *::before,
+        .reduce-effects *::after {
+            animation: none !important;
+            transition: none !important;
+        }
+
         #matrixCanvas {
             position: fixed;
             top: 0; left: 0;
             width: 100%; height: 100%;
             z-index: 0;
-            opacity: 0.06;
+            opacity: 0.05;
             pointer-events: none;
+            will-change: transform;
         }
 
         .container {
@@ -38,42 +54,38 @@
             z-index: 1;
             width: 100%;
             max-width: 480px;
-            padding: 16px;
+            padding: 12px;
         }
 
         .card {
-            background: rgba(20, 20, 30, 0.85);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.07);
+            background: var(--card-bg);
+            border: 1px solid var(--border);
             border-radius: 20px;
-            padding: 32px 28px;
-            box-shadow: 0 24px 80px rgba(0,0,0,0.7);
-            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            padding: 32px 24px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+            transition: opacity 0.3s;
         }
-
         .card.hidden { display: none; }
 
-        /* STEP 1 */
-        .ig-logo {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 20px;
-        }
-        .ig-logo svg { width: 56px; height: 56px; }
-
         .step-title {
-            color: #fff;
+            color: var(--text);
             font-size: 20px;
             font-weight: 600;
             text-align: center;
         }
         .step-sub {
-            color: rgba(255,255,255,0.45);
+            color: var(--text-dim);
             font-size: 13px;
             text-align: center;
             margin: 6px 0 24px;
         }
+
+        .ig-logo {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .ig-logo svg { width: 52px; height: 52px; }
 
         .input-group {
             position: relative;
@@ -84,34 +96,30 @@
             left: 16px;
             top: 50%;
             transform: translateY(-50%);
-            color: rgba(255,255,255,0.25);
+            color: rgba(255,255,255,0.2);
             font-weight: 500;
             font-size: 15px;
+            pointer-events: none;
         }
         .input-group input {
             width: 100%;
-            padding: 15px 16px 15px 38px;
+            padding: 14px 16px 14px 38px;
             background: rgba(255,255,255,0.06);
-            border: 1px solid rgba(255,255,255,0.1);
+            border: 1px solid var(--border);
             border-radius: 12px;
-            color: #fff;
+            color: var(--text);
             font-size: 15px;
             font-family: 'Inter', sans-serif;
             outline: none;
-            transition: 0.3s;
+            transition: border-color 0.2s;
         }
         .input-group input:focus {
-            border-color: rgba(88,101,242,0.5);
-            background: rgba(255,255,255,0.08);
-            box-shadow: 0 0 24px rgba(88,101,242,0.06);
+            border-color: rgba(88,101,242,0.4);
         }
-        .input-group input::placeholder { color: rgba(255,255,255,0.2); }
-        .input-group.error input {
-            border-color: #ed4245;
-            box-shadow: 0 0 24px rgba(237,66,69,0.1);
-        }
+        .input-group input::placeholder { color: rgba(255,255,255,0.15); }
+        .input-group.error input { border-color: var(--danger); }
         .input-group .error-msg {
-            color: #ed4245;
+            color: var(--danger);
             font-size: 12px;
             margin-top: 6px;
             display: none;
@@ -120,245 +128,224 @@
 
         .btn {
             width: 100%;
-            padding: 15px;
+            padding: 14px;
             border: none;
             border-radius: 12px;
             font-size: 15px;
             font-weight: 600;
             font-family: 'Inter', sans-serif;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: opacity 0.2s;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
         }
         .btn:disabled {
-            opacity: 0.5;
+            opacity: 0.45;
             cursor: not-allowed;
-            transform: none !important;
+        }
+        .btn:active {
+            opacity: 0.8;
         }
 
         .btn-primary {
             background: linear-gradient(135deg, #5865f2, #4752c4);
             color: #fff;
         }
-        .btn-primary:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 30px rgba(88,101,242,0.25);
-        }
-
         .btn-success {
             background: linear-gradient(135deg, #00c853, #009624);
             color: #fff;
         }
-        .btn-success:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 30px rgba(0,200,83,0.25);
-        }
-
         .btn-danger {
             background: linear-gradient(135deg, #ed4245, #c03537);
             color: #fff;
         }
-        .btn-danger:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 30px rgba(237,66,69,0.25);
-        }
-
         .btn-outline {
             background: transparent;
-            color: rgba(255,255,255,0.6);
-            border: 1px solid rgba(255,255,255,0.12);
-        }
-        .btn-outline:hover:not(:disabled) {
-            background: rgba(255,255,255,0.05);
+            color: rgba(255,255,255,0.5);
+            border: 1px solid rgba(255,255,255,0.1);
         }
 
-        /* STEP 2 - Confirmação do perfil */
+        /* Preview profile (step 2) */
         .preview-card {
             background: rgba(255,255,255,0.03);
-            border-radius: 16px;
-            padding: 20px;
-            margin-bottom: 20px;
-            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 14px;
+            padding: 18px;
+            margin-bottom: 18px;
+            border: 1px solid rgba(255,255,255,0.04);
         }
         .preview-row {
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: 14px;
         }
         .preview-avatar {
-            width: 64px;
-            height: 64px;
+            width: 60px; height: 60px;
             border-radius: 50%;
             background: linear-gradient(135deg, #feda75, #d62976, #962fbf, #4f5bd5);
             padding: 3px;
             flex-shrink: 0;
         }
         .preview-avatar img {
-            width: 100%;
-            height: 100%;
+            width: 100%; height: 100%;
             border-radius: 50%;
             object-fit: cover;
             background: #1a1a2e;
         }
         .preview-info { flex: 1; min-width: 0; }
         .preview-info .name {
-            color: #fff;
-            font-size: 16px;
+            color: var(--text);
+            font-size: 15px;
             font-weight: 600;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
         .preview-info .username {
-            color: rgba(255,255,255,0.4);
+            color: var(--text-dim);
             font-size: 13px;
         }
         .preview-info .bio {
-            color: rgba(255,255,255,0.55);
+            color: rgba(255,255,255,0.5);
             font-size: 12px;
-            margin-top: 4px;
+            margin-top: 3px;
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
         }
+        .verify-badge {
+            display: inline-block;
+            background: rgba(0,149,246,0.12);
+            color: #0095f6;
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 7px;
+            border-radius: 5px;
+            margin-left: 5px;
+            vertical-align: middle;
+        }
         .preview-stats {
             display: flex;
             justify-content: space-around;
-            margin-top: 16px;
-            padding-top: 14px;
-            border-top: 1px solid rgba(255,255,255,0.06);
+            margin-top: 14px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255,255,255,0.05);
         }
         .preview-stats .stat { text-align: center; }
         .preview-stats .stat .num {
-            color: #fff;
-            font-size: 15px;
+            color: var(--text);
+            font-size: 14px;
             font-weight: 600;
         }
         .preview-stats .stat .label {
-            color: rgba(255,255,255,0.35);
+            color: rgba(255,255,255,0.3);
             font-size: 11px;
-            margin-top: 1px;
-        }
-        .verify-badge {
-            display: inline-block;
-            background: rgba(0,149,246,0.15);
-            color: #0095f6;
-            font-size: 11px;
-            font-weight: 600;
-            padding: 2px 8px;
-            border-radius: 6px;
-            margin-left: 6px;
-            vertical-align: middle;
         }
 
-        /* STEP 3 - Hacking */
+        /* Step 3 - Hacking */
         .hack-container { text-align: center; }
         .hack-status {
-            color: rgba(255,255,255,0.5);
+            color: var(--text-dim);
             font-size: 12px;
             font-family: 'Courier New', monospace;
-            margin-bottom: 16px;
+            min-height: 18px;
         }
         .hack-status .hl { color: #00ff88; }
 
         .ring-loader {
-            width: 72px; height: 72px;
-            margin: 0 auto 20px;
+            width: 64px; height: 64px;
+            margin: 16px auto 16px;
             position: relative;
         }
         .ring-loader .r {
             position: absolute;
             width: 100%; height: 100%;
-            border: 3px solid transparent;
+            border: 2.5px solid transparent;
             border-radius: 50%;
+        }
+        .ring-loader .r:nth-child(1) {
+            border-top-color: var(--accent);
             animation: spin 1.2s cubic-bezier(0.5,0,0.5,1) infinite;
         }
-        .ring-loader .r:nth-child(1) { border-top-color: #5865f2; }
         .ring-loader .r:nth-child(2) {
             width: 66%; height: 66%;
             top: 17%; left: 17%;
             border-top-color: #00ff88;
-            animation-duration: 1.8s;
-            animation-direction: reverse;
+            animation: spin 1.8s reverse infinite;
         }
         .ring-loader .r:nth-child(3) {
             width: 34%; height: 34%;
             top: 33%; left: 33%;
-            border-top-color: #ed4245;
-            animation-duration: 1.0s;
+            border-top-color: var(--danger);
+            animation: spin 1.0s infinite;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
 
         .hack-log {
-            background: rgba(0,0,0,0.4);
-            border-radius: 12px;
-            padding: 14px;
-            margin-top: 16px;
-            max-height: 180px;
+            background: rgba(0,0,0,0.35);
+            border-radius: 10px;
+            padding: 12px;
+            margin-top: 14px;
+            max-height: 160px;
             overflow-y: auto;
             text-align: left;
             font-family: 'Courier New', monospace;
             font-size: 11px;
-            line-height: 1.7;
-            border: 1px solid rgba(255,255,255,0.04);
+            line-height: 1.6;
+            border: 1px solid rgba(255,255,255,0.03);
         }
         .hack-log::-webkit-scrollbar { width: 3px; }
-        .hack-log::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+        .hack-log::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 3px; }
 
-        .log-line { color: rgba(255,255,255,0.35); opacity: 0; animation: fadeLog 0.25s forwards; }
+        .log-line { color: rgba(255,255,255,0.25); }
         .log-line.s { color: #00ff88; }
-        .log-line.e { color: #ed4245; }
+        .log-line.e { color: var(--danger); }
         .log-line.w { color: #f1c40f; }
-        .log-line.i { color: #5865f2; }
-        .log-line.d { color: rgba(255,255,255,0.2); }
-        @keyframes fadeLog { to { opacity: 1; } }
+        .log-line.i { color: var(--accent); }
+        .log-line.d { color: rgba(255,255,255,0.15); }
 
         .hack-progress {
-            width: 100%; height: 3px;
-            background: rgba(255,255,255,0.05);
-            border-radius: 4px;
-            margin-top: 14px;
+            width: 100%; height: 2px;
+            background: rgba(255,255,255,0.04);
+            border-radius: 2px;
+            margin-top: 12px;
             overflow: hidden;
         }
         .hack-progress .fill {
             height: 100%; width: 0%;
-            background: linear-gradient(90deg, #5865f2, #00ff88);
-            border-radius: 4px;
-            transition: width 0.3s;
+            background: linear-gradient(90deg, var(--accent), #00ff88);
+            border-radius: 2px;
+            transition: width 0.25s;
         }
 
-        /* STEP 4 - Perfil completo + Paywall */
-        .profile-header {
-            text-align: center;
-            margin-bottom: 20px;
-        }
+        /* Step 4 - Perfil */
+        .profile-header { text-align: center; margin-bottom: 18px; }
         .profile-header .big-avatar {
-            width: 88px; height: 88px;
+            width: 80px; height: 80px;
             border-radius: 50%;
             background: linear-gradient(135deg, #feda75, #d62976, #962fbf, #4f5bd5);
             padding: 3px;
-            margin: 0 auto 12px;
+            margin: 0 auto 10px;
         }
         .profile-header .big-avatar img {
             width: 100%; height: 100%;
             border-radius: 50%;
             object-fit: cover;
-            background: #1a1a2e;
         }
         .profile-header .fullname {
-            color: #fff;
-            font-size: 20px;
+            color: var(--text);
+            font-size: 18px;
             font-weight: 700;
         }
         .profile-header .user {
-            color: rgba(255,255,255,0.4);
-            font-size: 14px;
+            color: var(--text-dim);
+            font-size: 13px;
         }
         .profile-header .bio-text {
-            color: rgba(255,255,255,0.6);
+            color: rgba(255,255,255,0.55);
             font-size: 13px;
-            margin-top: 6px;
-            max-width: 320px;
+            margin-top: 5px;
+            max-width: 300px;
             margin-left: auto;
             margin-right: auto;
         }
@@ -366,178 +353,177 @@
         .profile-actions {
             display: flex;
             gap: 8px;
-            margin: 16px 0;
+            margin: 14px 0;
         }
         .profile-actions .btn { flex: 1; padding: 10px; font-size: 13px; }
 
         .profile-tabs {
             display: flex;
-            border-top: 1px solid rgba(255,255,255,0.06);
-            border-bottom: 1px solid rgba(255,255,255,0.06);
-            margin-bottom: 16px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            margin-bottom: 14px;
         }
         .profile-tabs .tab {
             flex: 1;
             text-align: center;
-            padding: 12px 0;
-            color: rgba(255,255,255,0.3);
-            font-size: 12px;
+            padding: 10px 0;
+            color: rgba(255,255,255,0.25);
+            font-size: 11px;
             font-weight: 500;
-            cursor: pointer;
             border-bottom: 2px solid transparent;
-            transition: 0.3s;
         }
         .profile-tabs .tab.active {
-            color: #fff;
-            border-bottom-color: #5865f2;
+            color: var(--text);
+            border-bottom-color: var(--accent);
         }
 
-        /* Grade de posts */
         .posts-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 3px;
-            margin-bottom: 16px;
+            gap: 2px;
         }
         .posts-grid .post-thumb {
             aspect-ratio: 1;
-            background: rgba(255,255,255,0.04);
-            border-radius: 2px;
+            background: rgba(255,255,255,0.03);
             overflow: hidden;
             position: relative;
         }
         .posts-grid .post-thumb img {
-            width: 100%;
-            height: 100%;
+            width: 100%; height: 100%;
             object-fit: cover;
         }
         .posts-grid .post-thumb .overlay {
             position: absolute;
             bottom: 0; left: 0; right: 0;
-            padding: 6px 8px;
-            background: linear-gradient(transparent, rgba(0,0,0,0.7));
+            padding: 5px 6px;
+            background: linear-gradient(transparent, rgba(0,0,0,0.6));
             display: flex;
-            gap: 10px;
-            font-size: 11px;
+            gap: 8px;
+            font-size: 10px;
             color: #fff;
             opacity: 0;
-            transition: 0.2s;
         }
         .posts-grid .post-thumb:hover .overlay { opacity: 1; }
-
-        .posts-grid .post-placeholder {
+        .post-placeholder {
             aspect-ratio: 1;
-            background: rgba(255,255,255,0.03);
-            border-radius: 2px;
+            background: rgba(255,255,255,0.02);
             display: flex;
             align-items: center;
             justify-content: center;
-            color: rgba(255,255,255,0.1);
-            font-size: 10px;
+            color: rgba(255,255,255,0.06);
+            font-size: 18px;
         }
 
         /* Paywall */
         .paywall {
-            background: rgba(237,66,69,0.08);
-            border: 1px solid rgba(237,66,69,0.15);
-            border-radius: 14px;
-            padding: 20px;
+            background: rgba(237,66,69,0.06);
+            border: 1px solid rgba(237,66,69,0.12);
+            border-radius: 12px;
+            padding: 18px;
             text-align: center;
-            margin-top: 16px;
+            margin-top: 14px;
         }
-        .paywall .lock { font-size: 32px; margin-bottom: 8px; }
+        .paywall .lock { font-size: 28px; margin-bottom: 6px; }
         .paywall .pw-title {
-            color: #ed4245;
-            font-size: 16px;
+            color: var(--danger);
+            font-size: 15px;
             font-weight: 600;
         }
         .paywall .pw-desc {
-            color: rgba(255,255,255,0.4);
-            font-size: 13px;
-            margin: 6px 0 16px;
+            color: var(--text-dim);
+            font-size: 12px;
+            margin: 4px 0 14px;
         }
         .paywall .pw-price {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 6px;
-            margin-bottom: 6px;
+            gap: 5px;
         }
         .paywall .pw-price .amount {
-            color: #fff;
-            font-size: 34px;
+            color: var(--text);
+            font-size: 30px;
             font-weight: 700;
         }
         .paywall .pw-price .currency {
-            color: rgba(255,255,255,0.35);
-            font-size: 18px;
+            color: rgba(255,255,255,0.3);
+            font-size: 16px;
             font-weight: 500;
         }
         .paywall .pw-price .badge {
-            background: rgba(0,255,136,0.12);
+            background: rgba(0,255,136,0.1);
             color: #00ff88;
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 600;
-            padding: 3px 10px;
-            border-radius: 20px;
+            padding: 2px 8px;
+            border-radius: 16px;
         }
         .paywall .pw-payments {
             display: flex;
             justify-content: center;
-            gap: 14px;
-            margin: 12px 0 18px;
-            font-size: 20px;
-            color: rgba(255,255,255,0.15);
+            gap: 12px;
+            margin: 10px 0 14px;
+            font-size: 18px;
+            color: rgba(255,255,255,0.1);
         }
         .paywall .pw-footer {
-            color: rgba(255,255,255,0.15);
+            color: rgba(255,255,255,0.1);
             font-size: 10px;
-            margin-top: 12px;
+            margin-top: 10px;
         }
 
-        /* STEP 5 - Final */
-        .final-icon { font-size: 52px; margin-bottom: 12px; }
-        .final-title { color: #00ff88; font-size: 20px; font-weight: 600; text-align: center; }
+        /* Step 5 - Final */
+        .final-icon { font-size: 48px; margin-bottom: 10px; text-align: center; }
+        .final-title { color: #00ff88; font-size: 18px; font-weight: 600; text-align: center; }
         .final-sub {
-            color: rgba(255,255,255,0.4);
+            color: var(--text-dim);
             font-size: 13px;
             text-align: center;
-            margin: 8px 0 24px;
+            margin: 8px 0 20px;
         }
 
-        /* Loader no botão */
         .btn .spinner {
             display: inline-block;
-            width: 16px; height: 16px;
+            width: 14px; height: 14px;
             border: 2px solid rgba(255,255,255,0.2);
             border-top-color: #fff;
             border-radius: 50%;
             animation: spin 0.7s linear infinite;
             vertical-align: middle;
-            margin-right: 6px;
+            margin-right: 5px;
         }
 
-        /* Glitch */
+        /* Glitch mínimo */
         #glitchScreen {
             position: fixed; top: 0; left: 0;
             width: 100%; height: 100%;
             z-index: 999; pointer-events: none;
         }
         #glitchScreen.active {
-            animation: glitch 0.12s ease-in-out 4;
+            animation: glitch 0.1s ease-in-out 3;
         }
         @keyframes glitch {
             0% { background: transparent; }
-            20% { background: rgba(255,0,0,0.04); }
-            40% { background: rgba(0,255,0,0.04); }
-            60% { background: rgba(0,0,255,0.04); }
-            80% { background: rgba(255,255,0,0.02); }
+            25% { background: rgba(255,0,0,0.03); }
+            50% { background: rgba(0,255,0,0.03); }
+            75% { background: rgba(0,0,255,0.03); }
             100% { background: transparent; }
         }
 
         @media (max-width: 480px) {
-            .card { padding: 24px 18px; }
-            .posts-grid { gap: 2px; }
+            .card { padding: 24px 16px; border-radius: 16px; }
+            .posts-grid { gap: 1px; }
+        }
+
+        /* Só aplica hover em telas com capacidade hover */
+        @media (hover: hover) {
+            .btn-primary:hover, .btn-success:hover, .btn-danger:hover {
+                opacity: 0.9;
+            }
+            .btn-outline:hover {
+                background: rgba(255,255,255,0.04);
+            }
+            .post-thumb:hover .overlay { opacity: 1; }
         }
     </style>
 </head>
@@ -548,7 +534,7 @@
 
 <div class="container">
 
-    <!-- STEP 1: Input -->
+    <!-- STEP 1 -->
     <div class="card" id="step1">
         <div class="ig-logo">
             <svg viewBox="0 0 56 56" fill="none">
@@ -564,11 +550,11 @@
             </svg>
         </div>
         <div class="step-title">Autenticação de Segurança</div>
-        <div class="step-sub">Digite seu @ do Instagram para verificar a conta</div>
+        <div class="step-sub">Digite seu @ do Instagram para verificar</div>
         <div class="input-group" id="inputGroup">
             <span class="prefix">@</span>
             <input type="text" id="userInput" placeholder="usuario" autocomplete="off" autofocus>
-            <div class="error-msg">✗ Usuário não encontrado. Verifique o @ e tente novamente.</div>
+            <div class="error-msg">✗ Usuário não encontrado. Verifique e tente novamente.</div>
         </div>
         <button class="btn btn-primary" id="btnSearch">Verificar Conta</button>
     </div>
@@ -576,12 +562,10 @@
     <!-- STEP 2: Confirmação -->
     <div class="card hidden" id="step2">
         <div class="step-title">Este é seu perfil?</div>
-        <div class="step-sub">Confirme antes de iniciar a verificação de segurança</div>
+        <div class="step-sub">Confirme antes de iniciar a verificação</div>
         <div class="preview-card" id="profilePreview">
             <div class="preview-row">
-                <div class="preview-avatar">
-                    <img id="previewAvatar" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect fill='%231a1a2e' width='64' height='64'/%3E%3C/svg%3E" alt="avatar">
-                </div>
+                <div class="preview-avatar"><img id="previewAvatar" src="" alt="avatar"></div>
                 <div class="preview-info">
                     <div class="name">
                         <span id="previewName">—</span>
@@ -606,12 +590,8 @@
     <!-- STEP 3: Hacking -->
     <div class="card hidden" id="step3">
         <div class="hack-container">
-            <div class="hack-status">
-                <span id="hackLabel">INICIANDO PROTOCOLO DE SEGURANÇA...</span>
-            </div>
-            <div class="ring-loader">
-                <div class="r"></div><div class="r"></div><div class="r"></div>
-            </div>
+            <div class="hack-status" id="hackLabel">INICIANDO PROTOCOLO DE SEGURANÇA...</div>
+            <div class="ring-loader"><div class="r"></div><div class="r"></div><div class="r"></div></div>
             <div class="hack-progress"><div class="fill" id="hackProgress"></div></div>
             <div class="hack-log" id="hackLog"></div>
         </div>
@@ -620,400 +600,343 @@
     <!-- STEP 4: Perfil + Paywall -->
     <div class="card hidden" id="step4">
         <div class="profile-header">
-            <div class="big-avatar">
-                <img id="profileAvatar" src="" alt="avatar">
-            </div>
+            <div class="big-avatar"><img id="profileAvatar" src="" alt="avatar"></div>
             <div class="fullname" id="profileName">—</div>
             <div class="user" id="profileUser">@—</div>
             <div class="bio-text" id="profileBio">—</div>
         </div>
-
         <div class="profile-actions">
-            <button class="btn btn-primary" disabled style="opacity:0.6;">Seguindo</button>
-            <button class="btn btn-outline" disabled style="opacity:0.6;">✉ Mensagem</button>
+            <button class="btn btn-primary" disabled style="opacity:0.5;">Seguindo</button>
+            <button class="btn btn-outline" disabled style="opacity:0.5;">✉ Mensagem</button>
         </div>
-
         <div class="profile-tabs">
             <div class="tab active">📷 Posts</div>
             <div class="tab">🎥 Reels</div>
             <div class="tab">🏷️ Marcados</div>
         </div>
-
         <div class="posts-grid" id="postsGrid"></div>
-
         <div class="paywall">
             <div class="lock">🔒</div>
             <div class="pw-title">Acesso Bloqueado</div>
-            <div class="pw-desc">Atividades suspeitas detectadas nesta conta.<br>Verifique sua identidade para continuar.</div>
+            <div class="pw-desc">Atividades suspeitas detectadas.<br>Verifique sua identidade para continuar.</div>
             <div class="pw-price">
-                <span class="currency">R$</span>
-                <span class="amount">97</span>
-                <span class="badge">ÚNICO PAGAMENTO</span>
+                <span class="currency">R$</span><span class="amount">97</span><span class="badge">ÚNICO</span>
             </div>
-            <div class="pw-payments">
-                <span>💳</span><span>📱</span><span>🏦</span><span>🪙</span>
-            </div>
+            <div class="pw-payments"><span>💳</span><span>📱</span><span>🏦</span></div>
             <button class="btn btn-danger" id="btnPay">★ Pagar e Recuperar Acesso ★</button>
-            <div class="pw-footer">Gateway Seguro • Reembolso em até 7 dias • Protocolo #IG-2026</div>
+            <div class="pw-footer">Gateway Seguro • Protocolo #IG-2026</div>
         </div>
     </div>
 
     <!-- STEP 5: Final -->
     <div class="card hidden" id="step5">
-        <div style="text-align:center;">
-            <div class="final-icon">✅</div>
-            <div class="final-title">Pagamento Aprovado!</div>
-            <div class="final-sub">Seu acesso será restaurado em até 24h.<br>Você receberá um e-mail com as instruções.</div>
-            <button class="btn btn-primary" id="btnReset">← Voltar ao início</button>
-            <div style="color:rgba(255,255,255,0.12);font-size:10px;margin-top:16px;">Protocolo #IG-2026-4872 • Equipe de Segurança Instagram</div>
-        </div>
+        <div class="final-icon">✅</div>
+        <div class="final-title">Pagamento Aprovado!</div>
+        <div class="final-sub">Acesso restaurado em até 24h.<br>Você receberá um e-mail com instruções.</div>
+        <button class="btn btn-primary" id="btnReset">← Voltar ao início</button>
+        <div style="color:rgba(255,255,255,0.08);font-size:10px;text-align:center;margin-top:14px;">Protocolo #IG-2026-4872</div>
     </div>
-
 </div>
 
 <script>
-    // ========== MATRIX ==========
-    const cvs = document.getElementById('matrixCanvas');
-    const ctx = cvs.getContext('2d');
-    let W, H, cols, dropsArr;
-    function resize() {
-        W = cvs.width = window.innerWidth;
-        H = cvs.height = window.innerHeight;
-        cols = Math.floor(W / 14);
-        dropsArr = Array(cols).fill(1);
-    }
-    resize();
-    window.addEventListener('resize', resize);
-    const katakana = 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン0123456789';
-    setInterval(() => {
-        ctx.fillStyle = 'rgba(10,10,15,0.04)';
-        ctx.fillRect(0,0,W,H);
-        ctx.font = '12px monospace';
-        for(let i=0; i<dropsArr.length; i++) {
-            const t = katakana[Math.floor(Math.random()*katakana.length)];
-            ctx.fillStyle = Math.random()>0.97 ? '#fff' : '#00ff88';
-            ctx.fillText(t, i*14, dropsArr[i]*14);
-            if(dropsArr[i]*14 > H && Math.random()>0.975) dropsArr[i]=0;
-            dropsArr[i]++;
+    (function() {
+        'use strict';
+
+        // ===== MATRIZ OTIMIZADA (requestAnimationFrame) =====
+        const canvas = document.getElementById('matrixCanvas');
+        const ctx = canvas.getContext('2d');
+        let W, H, columns, drops;
+
+        function resize() {
+            W = canvas.width = window.innerWidth;
+            H = canvas.height = window.innerHeight;
+            columns = Math.floor(W / 14);
+            drops = Array(columns).fill(1);
         }
-    }, 55);
+        resize();
+        window.addEventListener('resize', resize);
 
-    // ========== GLITCH ==========
-    const glitchEl = document.getElementById('glitchScreen');
-    function glitch() {
-        glitchEl.classList.add('active');
-        setTimeout(() => glitchEl.classList.remove('active'), 600);
-    }
+        const chars = 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン01';
 
-    // ========== SLEEP ==========
-    const sleep = ms => new Promise(r => setTimeout(r, ms));
+        let matrixRunning = true;
 
-    // ========== DOM REFS ==========
-    const $ = id => document.getElementById(id);
-    const step1=$('step1'), step2=$('step2'), step3=$('step3'), step4=$('step4'), step5=$('step5');
-    const userInput=$('userInput'), btnSearch=$('btnSearch'), inputGroup=$('inputGroup');
-    const btnBack=$('btnBack'), btnConfirm=$('btnConfirm');
-    const hackLog=$('hackLog'), hackProgress=$('hackProgress'), hackLabel=$('hackLabel');
-    const postsGrid=$('postsGrid');
-    const btnPay=$('btnPay'), btnReset=$('btnReset');
+        function drawMatrix() {
+            if (!matrixRunning) {
+                requestAnimationFrame(drawMatrix);
+                return;
+            }
+            ctx.fillStyle = 'rgba(10,10,15,0.06)';
+            ctx.fillRect(0, 0, W, H);
+            ctx.font = '11px monospace';
 
-    function show(card) {
-        document.querySelectorAll('.card').forEach(c => c.classList.add('hidden'));
-        card.classList.remove('hidden');
-    }
-
-    function addLog(text, type='d') {
-        const line = document.createElement('div');
-        line.className = `log-line ${type}`;
-        line.textContent = text;
-        hackLog.appendChild(line);
-        hackLog.scrollTop = hackLog.scrollHeight;
-    }
-
-    function formatNum(n) {
-        if (!n && n!==0) return '—';
-        if (n >= 1e6) return (n/1e6).toFixed(1)+'M';
-        if (n >= 1e3) return (n/1e3).toFixed(1)+'K';
-        return n.toLocaleString('pt-BR');
-    }
-
-    // ========== BUSCAR PERFIL NA API REAL ==========
-    async function fetchProfile(username) {
-        // Tenta múltiplos proxies CORS para contornar bloqueios
-        const urls = [
-            `https://api.allorigins.win/raw?url=${encodeURIComponent('https://i.instagram.com/api/v1/users/web_profile_info/?username='+username)}`,
-            `https://corsproxy.io/?${encodeURIComponent('https://i.instagram.com/api/v1/users/web_profile_info/?username='+username)}`,
-            `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent('https://i.instagram.com/api/v1/users/web_profile_info/?username='+username)}`
-        ];
-
-        const headers = {
-            'x-ig-app-id': '936619743392459',
-            'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1',
-            'Accept': '*/*',
-            'Accept-Language': 'pt-BR,pt;q=0.9,en;q=0.8'
-        };
-
-        let lastError = null;
-        for (const url of urls) {
-            try {
-                const res = await fetch(url, { headers });
-                if (!res.ok) continue;
-                const text = await res.text();
-                // Tenta parsear
-                let data;
-                try { data = JSON.parse(text); } catch(e) {
-                    // Pode vir como string dentro de JSON
-                    try { data = JSON.parse(JSON.parse(text)); } catch(e2) { continue; }
+            for (let i = 0; i < drops.length; i++) {
+                const t = chars[Math.floor(Math.random() * chars.length)];
+                ctx.fillStyle = Math.random() > 0.97 ? '#fff' : '#00ff88';
+                ctx.fillText(t, i * 14, drops[i] * 14);
+                if (drops[i] * 14 > H && Math.random() > 0.975) {
+                    drops[i] = 0;
                 }
-                if (data && data.data && data.data.user) return data.data.user;
-                if (data && data.user) return data.user;
-            } catch(e) { lastError = e; }
+                drops[i]++;
+            }
+            requestAnimationFrame(drawMatrix);
+        }
+        requestAnimationFrame(drawMatrix);
+
+        // ===== GLITCH =====
+        const glitchEl = document.getElementById('glitchScreen');
+        function glitch() {
+            glitchEl.classList.add('active');
+            setTimeout(() => glitchEl.classList.remove('active'), 400);
         }
 
-        // Fallback: tenta sem proxy (requer extensão CORS ou ambiente local)
-        try {
-            const res = await fetch('https://i.instagram.com/api/v1/users/web_profile_info/?username='+username, { headers });
-            if (res.ok) {
-                const data = await res.json();
-                if (data.data && data.data.user) return data.data.user;
+        // ===== HELPERS =====
+        const $ = id => document.getElementById(id);
+        const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+        function show(card) {
+            document.querySelectorAll('.card').forEach(c => c.classList.add('hidden'));
+            card.classList.remove('hidden');
+        }
+
+        function formatNum(n) {
+            if (n == null) return '—';
+            if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
+            if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
+            return Number(n).toLocaleString('pt-BR');
+        }
+
+        // ===== REDUZ EFEITOS DURANTE INTERAÇÃO =====
+        let effectTimer = null;
+        function pauseEffects() {
+            document.body.classList.add('reduce-effects');
+            matrixRunning = false;
+            clearTimeout(effectTimer);
+            effectTimer = setTimeout(() => {
+                document.body.classList.remove('reduce-effects');
+                matrixRunning = true;
+            }, 500);
+        }
+
+        document.addEventListener('click', pauseEffects);
+        document.addEventListener('touchstart', pauseEffects);
+
+        // ===== REFS =====
+        const step1 = $('step1'), step2 = $('step2'), step3 = $('step3');
+        const step4 = $('step4'), step5 = $('step5');
+        const userInput = $('userInput'), btnSearch = $('btnSearch'), inputGroup = $('inputGroup');
+        const btnBack = $('btnBack'), btnConfirm = $('btnConfirm');
+        const hackLog = $('hackLog'), hackProgress = $('hackProgress'), hackLabel = $('hackLabel');
+        const postsGrid = $('postsGrid');
+        const btnPay = $('btnPay'), btnReset = $('btnReset');
+
+        // ===== FUNÇÃO PARA ADICIONAR LOGS (sem appendChild em loop) =====
+        function addLog(text, type) {
+            const line = document.createElement('div');
+            line.className = 'log-line ' + (type || 'd');
+            line.textContent = text;
+            hackLog.appendChild(line);
+            hackLog.scrollTop = hackLog.scrollHeight;
+        }
+
+        // ===== BUSCAR PERFIL VIA API PRÓPRIA (Vercel) =====
+        async function fetchProfile(username) {
+            // Descobre a base URL dinamicamente
+            const base = window.location.origin;
+            const url = base + '/api/profile?username=' + encodeURIComponent(username);
+
+            const res = await fetch(url, {
+                headers: { 'Accept': 'application/json' },
+                signal: AbortSignal.timeout(12000)
+            });
+
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                throw new Error(err.error || 'Erro ao buscar perfil');
             }
-        } catch(e) {}
 
-        throw new Error('Perfil não encontrado ou privado');
-    }
+            return await res.json();
+        }
 
-    // ========== BUSCAR POSTS (via graphql) ==========
-    async function fetchPosts(username, userId) {
-        // Tenta pegar posts do profile info primeiro (já vem incluído)
-        // Se não tiver, tenta graphql
-        try {
-            const urls = [
-                `https://api.allorigins.win/raw?url=${encodeURIComponent('https://www.instagram.com/graphql/query/?query_id=17888483320059182&id='+userId+'&first=12')}`,
-                `https://corsproxy.io/?${encodeURIComponent('https://www.instagram.com/graphql/query/?query_id=17888483320059182&id='+userId+'&first=12')}`
-            ];
-            for (const url of urls) {
-                try {
-                    const res = await fetch(url, {
-                        headers: {
-                            'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15',
-                            'Accept': '*/*'
-                        }
-                    });
-                    if (res.ok) {
-                        const text = await res.text();
-                        let data;
-                        try { data = JSON.parse(text); } catch(e) {
-                            try { data = JSON.parse(JSON.parse(text)); } catch(e2) { continue; }
-                        }
-                        if (data && data.data && data.data.user && data.data.user.edge_owner_to_timeline_media) {
-                            return data.data.user.edge_owner_to_timeline_media.edges || [];
-                        }
-                    }
-                } catch(e) { continue; }
+        // ===== STEP 1 → BUSCAR → STEP 2 =====
+        btnSearch.addEventListener('click', async () => {
+            const username = userInput.value.trim();
+            if (!username) {
+                inputGroup.classList.add('error');
+                userInput.focus();
+                return;
             }
-        } catch(e) {}
-        return [];
-    }
+            inputGroup.classList.remove('error');
+            btnSearch.disabled = true;
+            btnSearch.innerHTML = '<span class="spinner"></span>Buscando...';
 
-    // ========== STEP 1 -> BUSCAR -> STEP 2 ==========
-    btnSearch.addEventListener('click', async () => {
-        const username = userInput.value.trim();
-        if (!username) {
-            inputGroup.classList.add('error');
+            try {
+                const profile = await fetchProfile(username);
+
+                // Preenche preview
+                $('previewName').textContent = profile.full_name;
+                $('previewUsername').textContent = '@' + profile.username;
+                $('previewBio').textContent = profile.biography || '';
+                $('previewAvatar').src = profile.profile_pic_url;
+                $('previewPosts').textContent = formatNum(profile.media_count);
+                $('previewFollowers').textContent = formatNum(profile.follower_count);
+                $('previewFollowing').textContent = formatNum(profile.following_count);
+
+                const badge = $('previewVerified');
+                if (profile.is_verified) {
+                    badge.style.display = 'inline-block';
+                } else {
+                    badge.style.display = 'none';
+                }
+
+                // Salva dados
+                window._profileData = profile;
+
+                show(step2);
+
+            } catch (err) {
+                console.error(err);
+                inputGroup.classList.add('error');
+                document.querySelector('.input-group .error-msg').textContent =
+                    '✗ ' + (err.message || 'Usuário não encontrado');
+            }
+
+            btnSearch.disabled = false;
+            btnSearch.textContent = 'Verificar Conta';
+        });
+
+        userInput.addEventListener('keydown', e => {
+            if (e.key === 'Enter') btnSearch.click();
+        });
+        userInput.addEventListener('input', () => inputGroup.classList.remove('error'));
+
+        // ===== STEP 2 NAV =====
+        btnBack.addEventListener('click', () => {
+            show(step1);
             userInput.focus();
-            return;
-        }
-        inputGroup.classList.remove('error');
-        btnSearch.disabled = true;
-        btnSearch.innerHTML = '<span class="spinner"></span>Buscando...';
+        });
 
-        try {
-            const user = await fetchProfile(username);
-            console.log('Dados do perfil:', user);
+        // ===== STEP 2 → CONFIRMAR → STEP 3 (HACK) =====
+        btnConfirm.addEventListener('click', async () => {
+            const pd = window._profileData;
+            if (!pd) return;
 
-            // Preencher preview
-            const fullName = user.full_name || username;
-            const avatarUrl = user.profile_pic_url_hd || user.profile_pic_url || '';
-            const bio = user.biography || '';
-            const postsCount = user.edge_owner_to_timeline_media?.count || user.media_count || 0;
-            const followers = user.edge_followed_by?.count || user.follower_count || 0;
-            const following = user.edge_follow?.count || user.following_count || 0;
-            const isVerified = user.is_verified || false;
+            show(step3);
+            hackLog.innerHTML = '';
+            hackProgress.style.width = '0%';
 
-            $('previewName').textContent = fullName;
-            $('previewUsername').textContent = '@' + username;
-            $('previewBio').textContent = bio;
-            $('previewAvatar').src = avatarUrl;
-            $('previewPosts').textContent = formatNum(postsCount);
-            $('previewFollowers').textContent = formatNum(followers);
-            $('previewFollowing').textContent = formatNum(following);
-            $('previewVerified').style.display = isVerified ? 'inline-block' : 'none';
+            // Preenche step4
+            $('profileAvatar').src = pd.profile_pic_url;
+            $('profileName').textContent = pd.full_name;
+            $('profileUser').textContent = '@' + pd.username;
+            $('profileBio').textContent = pd.biography || '';
 
-            // Salvar dados para próximas etapas
-            window._profileData = { user, username, fullName, avatarUrl, bio, postsCount, followers, following, isVerified, userId: user.id };
+            // ===== LOGS =====
+            const logs = [
+                { t: `[SCAN] Iniciando varredura em @${pd.username}...`, type: 'i', delay: 300 },
+                { t: '[SCAN] Resolvendo DNS: graph.instagram.com → OK', type: 'd', delay: 350 },
+                { t: '[SCAN] Handshake TLS 1.3 estabelecido', type: 's', delay: 300 },
+                { t: '[AUTH] Bypass OAuth 2.0 — token injetado', type: 'w', delay: 450 },
+                { t: '[AUTH] Token JWT: eyJhbGciOiJSUzI1NiIs...', type: 'd', delay: 350 },
+                { t: '[AUTH] Sessão válida — 2FA desativado', type: 's', delay: 400 },
+                { t: '[EXPLOIT] Vulnerabilidade CVE-2025-IG-042', type: 'w', delay: 500 },
+                { t: '[EXPLOIT] SQLi em /v1/account/recovery', type: 'i', delay: 450 },
+                { t: '[EXPLOIT] Extraindo hash bcrypt da sessão...', type: 'd', delay: 550 },
+                { t: '[CRACK] Força bruta em andamento (15M/s)', type: 'w', delay: 500 },
+                { t: '[CRACK] ████████░░ 78% concluído', type: 'd', delay: 400 },
+                { t: '[CRACK] Hash quebrado em 42 segundos!', type: 's', delay: 350 },
+                { t: '[ACCESS] Autenticando como @'+pd.username+'...', type: 'i', delay: 300 },
+                { t: '[ACCESS] Código 2FA interceptado: 823719', type: 'w', delay: 450 },
+                { t: '[ACCESS] Bypass de verificação concluído', type: 's', delay: 350 },
+                { t: '[DATA] Baixando metadados: '+pd.follower_count+' seguidores', type: 'i', delay: 400 },
+                { t: '[DATA] Extraindo DMs e histórico de login...', type: 'd', delay: 450 },
+                { t: '[DATA] Último IP: 179.xxx.xxx.42', type: 'd', delay: 300 },
+                { t: '[FIREWALL] Desativando proteção WAF...', type: 'w', delay: 450 },
+                { t: '[FIREWALL] Regras de segurança suprimidas', type: 's', delay: 350 },
+                { t: '[SYNC] Clonando sessão para servidores...', type: 'i', delay: 400 },
+                { t: '[SYNC] Sessão espelhada com sucesso', type: 's', delay: 300 },
+                { t: `[DONE] Acesso total a @${pd.username}!`, type: 's', delay: 400 },
+                { t: '[REDIRECT] Carregando painel de controle...', type: 'd', delay: 350 },
+            ];
 
-            show(step2);
+            // Usa async loop em vez de múltiplos setTimeout
+            const labels = [
+                'VARREDURA DE SUPERFÍCIE...', 'ANALISANDO PROTOCOLOS...',
+                'BY-PASSANDO AUTENTICAÇÃO...', 'EXTRAINDO DADOS...',
+                'QUEBRANDO HASH...', 'CONTORNANDO SEGURANÇA...',
+                'SINCRONIZANDO SESSÃO...', 'ACESSO GARANTIDO!'
+            ];
 
-        } catch(err) {
-            console.error(err);
-            inputGroup.classList.add('error');
-        }
-
-        btnSearch.disabled = false;
-        btnSearch.textContent = 'Verificar Conta';
-    });
-
-    userInput.addEventListener('keydown', e => {
-        if (e.key === 'Enter') btnSearch.click();
-    });
-    userInput.addEventListener('input', () => inputGroup.classList.remove('error'));
-
-    // ========== STEP 2 -> VOLTAR ==========
-    btnBack.addEventListener('click', () => {
-        show(step1);
-        userInput.focus();
-    });
-
-    // ========== STEP 2 -> CONFIRMAR -> STEP 3 (HACK) ==========
-    btnConfirm.addEventListener('click', async () => {
-        const pd = window._profileData;
-        if (!pd) return;
-
-        show(step3);
-        hackLog.innerHTML = '';
-        hackProgress.style.width = '0%';
-
-        // Preencher step4 com dados reais
-        $('profileAvatar').src = pd.avatarUrl;
-        $('profileName').textContent = pd.fullName;
-        $('profileUser').textContent = '@' + pd.username;
-        $('profileBio').textContent = pd.bio;
-
-        // ========== LOGS SIMULADOS ==========
-        const logs = [
-            { t: `[SCAN] Iniciando varredura em @${pd.username}...`, type: 'i', delay: 350 },
-            { t: '[SCAN] Resolvendo DNS: graph.instagram.com → 157.240.xx.xx', type: 'd', delay: 450 },
-            { t: '[SCAN] Handshake TLS 1.3 estabelecido', type: 's', delay: 400 },
-            { t: '[AUTH] Bypass OAuth 2.0 — injectando token de sessão', type: 'w', delay: 600 },
-            { t: '[AUTH] Token JWT obtido: eyJhbGciOiJSUzI1NiIsInR5cCI6...', type: 'd', delay: 500 },
-            { t: '[AUTH] Sessão válida: 2FA desativado para este cliente', type: 's', delay: 550 },
-            { t: '[EXPLOIT] Vulnerabilidade CVE-2025-IG-042 detectada', type: 'w', delay: 700 },
-            { t: '[EXPLOIT] SQLi em /v1/account/recovery — coluna security_token', type: 'i', delay: 650 },
-            { t: '[EXPLOIT] Extraindo hash bcrypt da sessão ativa...', type: 'd', delay: 800 },
-            { t: '[CRACK] Força bruta com wordlist + regras (15M senhas/s)', type: 'w', delay: 750 },
-            { t: '[CRACK] ████████░░ 82% — testando combinações', type: 'd', delay: 600 },
-            { t: '[CRACK] Hash quebrado em 47 segundos!', type: 's', delay: 500 },
-            { t: '[ACCESS] Autenticando como @'+pd.username+'...', type: 'i', delay: 400 },
-            { t: '[ACCESS] 2FA SMS interceptado: código 823719', type: 'w', delay: 600 },
-            { t: '[ACCESS] Bypass de verificação em duas etapas OK', type: 's', delay: 450 },
-            { t: '[DATA] Baixando metadados: '+pd.followers+' seguidores, '+pd.following+' seguindo', type: 'i', delay: 550 },
-            { t: '[DATA] Extraindo DMs, posts salvos, histórico de login...', type: 'd', delay: 650 },
-            { t: '[DATA] Último IP: 179.xxx.xxx.42 • São Paulo, BR', type: 'd', delay: 400 },
-            { t: '[DATA] E-mail vinculado: '+(pd.username)+'@***.com', type: 'd', delay: 500 },
-            { t: '[FIREWALL] Desativando WAF — regras suprimidas', type: 'w', delay: 600 },
-            { t: '[FIREWALL] Rate limiting contornado com rotação de IPs', type: 's', delay: 450 },
-            { t: '[SYNC] Clonando sessão para 3 servidores redundantes', type: 'i', delay: 500 },
-            { t: '[SYNC] Sessão espelhada com sucesso', type: 's', delay: 400 },
-            { t: `[DONE] Acesso total concedido à conta @${pd.username}!`, type: 's', delay: 600 },
-            { t: '[REDIRECT] Carregando painel de controle...', type: 'd', delay: 500 },
-        ];
-
-        let accDelay = 0;
-        for (let i = 0; i < logs.length; i++) {
-            accDelay += logs[i].delay;
-            setTimeout(() => {
+            for (let i = 0; i < logs.length; i++) {
+                await sleep(logs[i].delay);
                 addLog(logs[i].t, logs[i].type);
-                const pct = Math.min(100, Math.round(((i+1)/logs.length)*100));
-                hackProgress.style.width = pct+'%';
 
-                const labels = [
-                    'VARREDURA DE SUPERFÍCIE...','ANALISANDO PROTOCOLOS...',
-                    'BY-PASSANDO AUTENTICAÇÃO...','EXTRAINDO DADOS...',
-                    'QUEBRANDO HASH...','CONTORNANDO SEGURANÇA...',
-                    'SINCRONIZANDO SESSÃO...','ACESSO GARANTIDO!'
-                ];
-                const idx = Math.min(labels.length-1, Math.floor((i+1)/logs.length*labels.length));
+                const pct = Math.round(((i + 1) / logs.length) * 100);
+                hackProgress.style.width = pct + '%';
+
+                const idx = Math.min(labels.length - 1, Math.floor((i + 1) / logs.length * labels.length));
                 hackLabel.textContent = labels[idx];
-            }, accDelay);
-        }
+            }
 
-        setTimeout(() => glitch(), 2500);
-        setTimeout(() => glitch(), 5500);
-        setTimeout(() => glitch(), 8000);
+            // Glitch
+            glitch();
 
-        // Carregar posts enquanto isso
-        loadPosts(pd.userId, pd.username);
-
-        const totalTime = accDelay + 400;
-        setTimeout(() => {
-            show(step4);
-        }, totalTime);
-    });
-
-    // ========== CARREGAR POSTS ==========
-    async function loadPosts(userId, username) {
-        try {
-            const edges = await fetchPosts(username, userId);
-            if (edges && edges.length > 0) {
-                postsGrid.innerHTML = '';
-                edges.slice(0, 12).forEach(edge => {
-                    const node = edge.node;
-                    const imgUrl = node.thumbnail_src || node.display_url || '';
-                    const likes = node.edge_liked_by?.count || node.like_count || 0;
-                    const comments = node.edge_media_to_comment?.count || node.comment_count || 0;
-
+            // Carrega posts no grid (se houver)
+            if (pd.posts && pd.posts.length > 0) {
+                const frag = document.createDocumentFragment();
+                pd.posts.slice(0, 12).forEach(post => {
                     const div = document.createElement('div');
                     div.className = 'post-thumb';
-                    if (imgUrl) {
-                        div.innerHTML = `<img src="${imgUrl}" alt="post" loading="lazy">
+                    if (post.thumbnail) {
+                        div.innerHTML = `<img src="${post.thumbnail}" alt="post" loading="lazy">
                             <div class="overlay">
-                                <span>❤ ${formatNum(likes)}</span>
-                                <span>💬 ${formatNum(comments)}</span>
+                                <span>❤ ${formatNum(post.likes)}</span>
+                                <span>💬 ${formatNum(post.comments)}</span>
                             </div>`;
                     } else {
-                        div.innerHTML = `<div class="post-placeholder">📷</div>`;
+                        div.className = 'post-placeholder';
+                        div.textContent = '📷';
                     }
-                    postsGrid.appendChild(div);
+                    frag.appendChild(div);
                 });
+                postsGrid.innerHTML = '';
+                postsGrid.appendChild(frag);
             } else {
                 // Placeholders
-                postsGrid.innerHTML = '';
+                const frag = document.createDocumentFragment();
                 for (let i = 0; i < 9; i++) {
                     const div = document.createElement('div');
                     div.className = 'post-placeholder';
                     div.textContent = '📷';
-                    postsGrid.appendChild(div);
+                    frag.appendChild(div);
                 }
+                postsGrid.innerHTML = '';
+                postsGrid.appendChild(frag);
             }
-        } catch(e) {
-            console.log('Posts não disponíveis');
-            postsGrid.innerHTML = '';
-            for (let i = 0; i < 9; i++) {
-                const div = document.createElement('div');
-                div.className = 'post-placeholder';
-                div.textContent = '📷';
-                postsGrid.appendChild(div);
-            }
-        }
-    }
 
-    // ========== STEP 4 -> PAGAMENTO ==========
-    btnPay.addEventListener('click', () => {
-        glitch();
-        show(step5);
-    });
+            await sleep(300);
+            show(step4);
+        });
 
-    // ========== RESET ==========
-    btnReset.addEventListener('click', () => {
-        userInput.value = '';
-        window._profileData = null;
-        show(step1);
-        userInput.focus();
-    });
+        // ===== PAYMENT → FINAL =====
+        btnPay.addEventListener('click', () => {
+            glitch();
+            show(step5);
+        });
 
-    // Focus inicial
-    window.addEventListener('load', () => userInput.focus());
+        // ===== RESET =====
+        btnReset.addEventListener('click', () => {
+            userInput.value = '';
+            window._profileData = null;
+            show(step1);
+            userInput.focus();
+        });
+
+        // Focus inicial
+        window.addEventListener('load', () => {
+            setTimeout(() => userInput.focus(), 300);
+        });
+
+    })();
 </script>
-
 </body>
-</html>
+    </html>
